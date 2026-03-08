@@ -14,21 +14,25 @@
     <div class="header-selectors">
         <div class="selector-box">
             <label>比較データA (日付):</label>
-            <select id="dateA" onchange="updateData('A', this.value)">
-                <option value="">選択してください</option>
+            <select id="dateA" multiple size="4" onchange="updateData('A', this)">
                 {% for date in dates %}
                     <option value="{{ date }}">{{ date }}</option>
                 {% endfor %}
             </select>
+            <div style="font-size: 0.8em; color: #666; margin-top: 5px;">
+                ※Ctrlキー (MacはCommand) を押しながらクリックで複数選択
+            </div>
         </div>
         <div class="selector-box">
             <label>比較データB (日付):</label>
-            <select id="dateB" onchange="updateData('B', this.value)">
-                <option value="">選択してください</option>
+            <select id="dateB" multiple size="4" onchange="updateData('B', this)">
                 {% for date in dates %}
                     <option value="{{ date }}">{{ date }}</option>
                 {% endfor %}
             </select>
+            <div style="font-size: 0.8em; color: #666; margin-top: 5px;">
+                ※Ctrlキー (MacはCommand) を押しながらクリックで複数選択
+            </div>
         </div>
     </div>
 
@@ -36,7 +40,6 @@
         <button class="tab-btn active" onclick="switchTab('tab-basic', this)">基本データ</button>
         <button class="tab-btn" onclick="switchTab('tab-explanation', this)">よかった説明 (人数)</button>
         <button class="tab-btn" onclick="switchTab('tab-expl-pct', this)">よかった説明 (割合)</button>
-        <button class="tab-btn" onclick="switchTab('tab-category', this)">受験区分 (グラフ)</button>
         <button class="tab-btn" onclick="switchTab('tab-category', this)">受験区分 (グラフ)</button>
         <button class="tab-btn" onclick="switchTab('tab-time', this)">時間評価 (グラフ)</button>
     </div>
@@ -47,7 +50,7 @@
             <div class="side" id="basicB">データBを選択してください</div>
         </div>
     </div>
-
+    
     <div id="tab-expl-pct" class="tab-content">
         <div class="compare-container">
             <div class="side"><canvas id="chartExplPctA"></canvas></div>
@@ -68,7 +71,7 @@
             <div class="side"><canvas id="chartCatB"></canvas></div>
         </div>
     </div>
-    
+
     <div id="tab-time" class="tab-content">
         <div class="compare-container">
             <div class="side">

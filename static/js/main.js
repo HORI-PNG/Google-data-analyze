@@ -9,12 +9,9 @@ let charts = {
 
 // --- タブ切り替え機能 ---
 function switchTab(tabId, btnElement) {
-    // 全タブコンテンツを非表示
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    // 選択されたタブを表示
     document.getElementById(tabId).classList.add('active');
     
-    // タブボタンの色（Active状態）を変更
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     btnElement.classList.add('active');
 }
@@ -25,8 +22,11 @@ function formatCounts(countsObj) {
 }
 
 // --- データ取得と画面更新 ---
-async function updateData(side, dateStr) {
-    if (!dateStr) {
+async function updateData(side, selectElement) {
+    // 選択されたすべてのオプション（日付）を配列として取得
+    const selectedOptions = Array.from(selectElement.selectedOptions).map(opt => opt.value);
+
+    if (selectedOptions.length === 0) {
         document.getElementById(`basic${side}`).innerHTML = "データを選択してください";
         if (charts[side].expl) charts[side].expl.destroy();
         if (charts[side].cat) charts[side].cat.destroy();
@@ -36,7 +36,10 @@ async function updateData(side, dateStr) {
         return;
     }
 
-    const response = await fetch(`/api/data/${dateStr}`);
+    const datesQuery = selectedOptions.join(',');
+    const dateStr = selectedOptions.join(' & ');
+
+    const response = await fetch(`/api/data?dates=${datesQuery}`);
     const data = await response.json();
 
     // 1. 基本データタブの更新
@@ -53,15 +56,15 @@ async function updateData(side, dateStr) {
     // 2. よかった説明グラフ（人数）の描画
     drawExplChart(side, data, dateStr);
 
-    // 3. よかった説明グラフ（割合）
+    // 3. よかった説明グラフ（割合）の描画
     drawExplPctChart(side, data, dateStr);
 
-    // 3. 受験区分グラフ（円グラフ）の描画
-    // 3. 受験区分グラフ（円グラフ）の描画
-    if (data.category_counts) { // ★データが存在するかチェックする
+    // 4. 受験区分グラフ（円グラフ）の描画
+    if (data.category_counts) {
         drawCategoryChart(side, data.category_counts, dateStr);
-    };
+    }
 
+    // 5. 時間評価グラフ（円グラフ）の描画
     if (data.start_time_counts && data.duration_counts) {
         drawTimeCharts(side, data.start_time_counts, data.duration_counts, dateStr);
     }
@@ -75,6 +78,7 @@ function drawExplChart(side, data, dateStr) {
     const colorTotal = 'rgba(150, 150, 150, 0.4)';
     const colorStudent = side === 'A' ? 'rgba(54, 162, 235, 0.6)' : 'rgba(75, 192, 192, 0.6)';
     const colorParent = side === 'A' ? 'rgba(255, 99, 132, 0.6)' : 'rgba(255, 159, 64, 0.6)';
+    const colorBoth = side === 'A' ? 'rgba(75, 192, 75, 0.6)' : 'rgba(153, 102, 255, 0.6)'; // ★追加：両方の色
 
     charts[side].expl = new Chart(ctx, {
         type: 'bar',
@@ -83,36 +87,25 @@ function drawExplChart(side, data, dateStr) {
             datasets: [
                 { label: '全体', data: data.explanation_total, backgroundColor: colorTotal },
                 { label: '新入生のみ', data: data.explanation_student, backgroundColor: colorStudent },
-                { label: '保護者のみ', data: data.explanation_parent, backgroundColor: colorParent }
+                { label: '保護者のみ', data: data.explanation_parent, backgroundColor: colorParent },
+                { label: '両方(ｵﾝﾗｲﾝ)', data: data.explanation_both, backgroundColor: colorBoth } // ★追加
             ]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false, // ★追加：CSSの高さに合わせて柔軟に伸びるようにする
-            layout: { 
-                padding: { top: 30 } 
-            },
+            maintainAspectRatio: false, 
+            layout: { padding: { top: 30 } },
             scales: {
                 x: {
-                    ticks: {
-                        autoSkip: false,  // ★追加：文字が勝手に省略されるのを防ぐ
-                        maxRotation: 45,  // ★追加：文字を45度傾ける
-                        minRotation: 45,  // ★追加：最低でも45度傾ける
-                        font: { size: 11 } // ★追加：文字サイズを少し調整
-                    }
+                    ticks: { autoSkip: false, maxRotation: 45, minRotation: 45, font: { size: 11 } }
                 },
-                y: {
-                    beginAtZero: true // Y軸が必ず0から始まるようにする
-                }
+                y: { beginAtZero: true }
             },
             plugins: {
                 legend: { position: 'top' },
                 title: { display: true, text: `${dateStr} - よかった説明` },
                 datalabels: {
-                    color: '#444', 
-                    anchor: 'end', 
-                    align: 'top', 
-                    font: { size: 10 },
+                    color: '#444', anchor: 'end', align: 'top', font: { size: 10 },
                     formatter: value => value > 0 ? value + '人' : ''
                 }
             }
@@ -120,13 +113,9 @@ function drawExplChart(side, data, dateStr) {
     });
 }
 
+// --- グラフ描画関数（よかった説明 - 割合） ---
 function drawExplPctChart(side, data, dateStr) {
-    const ctx = document.getElementById(`chartExplPct${side}`).getContext('2d');
-    if (charts[side].explPct) charts[side].explPct.destroy();
-
-    const colorTotal = 'rgba(150, 150, 150, 0.4)';
-    const colorStudent = side === 'A' ? 'rgba(54, 162, 235, 0.6)' : 'rgba(75, 192, 192, 0.6)';
-    const colorParent = side === 'A' ? 'rgba(255, 99, 132, 0.6)' : 'rgba(255, 159, 64, 0.6)';
+    const colorBoth = side === 'A' ? 'rgba(75, 192, 75, 0.6)' : 'rgba(153, 102, 255, 0.6)'; // ★追加
 
     charts[side].explPct = new Chart(ctx, {
         type: 'bar',
@@ -135,7 +124,8 @@ function drawExplPctChart(side, data, dateStr) {
             datasets: [
                 { label: '全体 (%)', data: data.explanation_total_pct, backgroundColor: colorTotal },
                 { label: '新入生のみ (%)', data: data.explanation_student_pct, backgroundColor: colorStudent },
-                { label: '保護者のみ (%)', data: data.explanation_parent_pct, backgroundColor: colorParent }
+                { label: '保護者のみ (%)', data: data.explanation_parent_pct, backgroundColor: colorParent },
+                { label: '両方 (%)', data: data.explanation_both_pct, backgroundColor: colorBoth } // ★追加
             ]
         },
         options: {
@@ -146,20 +136,14 @@ function drawExplPctChart(side, data, dateStr) {
                 x: {
                     ticks: { autoSkip: false, maxRotation: 45, minRotation: 45, font: { size: 11 } }
                 },
-                y: {
-                    beginAtZero: true
-                    // 割合なので max: 100 を設定しても良いですが、項目が多いと1つの割合が小さくなるので自動（未設定）がおすすめです。
-                }
+                y: { beginAtZero: true }
             },
             plugins: {
                 legend: { position: 'top' },
                 title: { display: true, text: `${dateStr} - よかった説明 (割合)` },
                 datalabels: {
-                    color: '#444', 
-                    anchor: 'end', 
-                    align: 'top', 
-                    font: { size: 10 },
-                    formatter: value => value > 0 ? value + '%' : '' // ★「人」ではなく「%」にする
+                    color: '#444', anchor: 'end', align: 'top', font: { size: 10 },
+                    formatter: value => value > 0 ? value + '%' : ''
                 }
             }
         }
@@ -201,7 +185,6 @@ function drawCategoryChart(side, categoryCounts, dateStr) {
 
 // --- グラフ描画関数（時間評価：円グラフ） ---
 function drawTimeCharts(side, startCounts, durationCounts, dateStr) {
-    // 1. 開始時間のグラフ
     const ctxStart = document.getElementById(`chartStart${side}`).getContext('2d');
     if (charts[side].start) charts[side].start.destroy();
 
@@ -223,7 +206,6 @@ function drawTimeCharts(side, startCounts, durationCounts, dateStr) {
         }
     });
 
-    // 2. 説明時間のグラフ
     const ctxDuration = document.getElementById(`chartDuration${side}`).getContext('2d');
     if (charts[side].duration) charts[side].duration.destroy();
 

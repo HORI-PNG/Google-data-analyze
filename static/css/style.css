@@ -72,14 +72,14 @@ select { padding: 5px 10px; font-size: 1em; margin-left: 10px; }
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     
-    /* ★追加・変更：グラフが潰れないように高さをしっかり確保 */
+    /* グラフが潰れないように高さをしっかり確保 */
     min-height: 500px; 
     display: flex;
     flex-direction: column;
 }
 
 canvas { 
-    /* ★追加：枠いっぱいに広がるように設定 */
+    /* 枠いっぱいに広がるように設定 */
     max-width: 100%; 
     flex-grow: 1; 
     margin-top: 20px;
