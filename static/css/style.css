@@ -1,0 +1,86 @@
+body { 
+    font-family: sans-serif; 
+    margin: 20px; 
+    background-color: #f4f7fa; 
+    color: #333;
+}
+h2 { text-align: center; color: #2c3e50; }
+
+/* 上部の日付選択エリア */
+.header-selectors {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 20px;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.selector-box { font-size: 1.1em; font-weight: bold; }
+select { padding: 5px 10px; font-size: 1em; margin-left: 10px; }
+
+/* タブのデザイン */
+.tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    gap: 10px;
+}
+.tab-btn {
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: bold;
+    border: none;
+    background-color: #e0e6ed;
+    color: #555;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.tab-btn:hover { background-color: #cbd4df; }
+.tab-btn.active {
+    background-color: #3498db;
+    color: white;
+    box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+}
+
+/* タブコンテンツ（初期状態では非表示） */
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.4s; }
+
+/* 基本データ用テキスト */
+.stat-box p { margin: 10px 0; font-size: 1.1em; }
+.stat-box strong { color: #e74c3c; font-size: 1.2em; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 比較用コンテナ */
+.compare-container { 
+    display: flex; 
+    gap: 20px; 
+    align-items: stretch; /* 左右の高さを揃える */
+}
+
+.side {
+    flex: 1;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    
+    /* ★追加・変更：グラフが潰れないように高さをしっかり確保 */
+    min-height: 500px; 
+    display: flex;
+    flex-direction: column;
+}
+
+canvas { 
+    /* ★追加：枠いっぱいに広がるように設定 */
+    max-width: 100%; 
+    flex-grow: 1; 
+    margin-top: 20px;
+}

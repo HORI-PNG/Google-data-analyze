@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>入説アンケート比較ダッシュボード</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <h2>入学準備説明会 アンケート比較 (日付別)</h2>
+
+    <div class="header-selectors">
+        <div class="selector-box">
+            <label>比較データA (日付):</label>
+            <select id="dateA" onchange="updateData('A', this.value)">
+                <option value="">選択してください</option>
+                {% for date in dates %}
+                    <option value="{{ date }}">{{ date }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="selector-box">
+            <label>比較データB (日付):</label>
+            <select id="dateB" onchange="updateData('B', this.value)">
+                <option value="">選択してください</option>
+                {% for date in dates %}
+                    <option value="{{ date }}">{{ date }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-basic', this)">基本データ</button>
+        <button class="tab-btn" onclick="switchTab('tab-explanation', this)">よかった説明 (人数)</button>
+        <button class="tab-btn" onclick="switchTab('tab-expl-pct', this)">よかった説明 (割合)</button>
+        <button class="tab-btn" onclick="switchTab('tab-category', this)">受験区分 (グラフ)</button>
+        <button class="tab-btn" onclick="switchTab('tab-category', this)">受験区分 (グラフ)</button>
+        <button class="tab-btn" onclick="switchTab('tab-time', this)">時間評価 (グラフ)</button>
+    </div>
+
+    <div id="tab-basic" class="tab-content active">
+        <div class="compare-container">
+            <div class="side" id="basicA">データAを選択してください</div>
+            <div class="side" id="basicB">データBを選択してください</div>
+        </div>
+    </div>
+
+    <div id="tab-expl-pct" class="tab-content">
+        <div class="compare-container">
+            <div class="side"><canvas id="chartExplPctA"></canvas></div>
+            <div class="side"><canvas id="chartExplPctB"></canvas></div>
+        </div>
+    </div>
+
+    <div id="tab-explanation" class="tab-content">
+        <div class="compare-container">
+            <div class="side"><canvas id="chartExplA"></canvas></div>
+            <div class="side"><canvas id="chartExplB"></canvas></div>
+        </div>
+    </div>
+
+    <div id="tab-category" class="tab-content">
+        <div class="compare-container">
+            <div class="side"><canvas id="chartCatA"></canvas></div>
+            <div class="side"><canvas id="chartCatB"></canvas></div>
+        </div>
+    </div>
+    
+    <div id="tab-time" class="tab-content">
+        <div class="compare-container">
+            <div class="side">
+                <canvas id="chartStartA"></canvas>
+                <hr style="margin: 30px 0; border: none; border-top: 1px dashed #ccc;">
+                <canvas id="chartDurationA"></canvas>
+            </div>
+            <div class="side">
+                <canvas id="chartStartB"></canvas>
+                <hr style="margin: 30px 0; border: none; border-top: 1px dashed #ccc;">
+                <canvas id="chartDurationB"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
