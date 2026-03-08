@@ -99,7 +99,10 @@ function drawExplChart(side, data, dateStr) {
                 x: {
                     ticks: { autoSkip: false, maxRotation: 45, minRotation: 45, font: { size: 11 } }
                 },
-                y: { beginAtZero: true }
+                y: {
+                    beginAtZero: true,
+                    grace: '10%'
+                 }
             },
             plugins: {
                 legend: { position: 'top' },
@@ -114,8 +117,16 @@ function drawExplChart(side, data, dateStr) {
 }
 
 // --- グラフ描画関数（よかった説明 - 割合） ---
+// --- グラフ描画関数（よかった説明 - 割合） ---
 function drawExplPctChart(side, data, dateStr) {
-    const colorBoth = side === 'A' ? 'rgba(75, 192, 75, 0.6)' : 'rgba(153, 102, 255, 0.6)'; // ★追加
+    // ★ ここから下の5行が消えてしまっていたので復活させます！
+    const ctx = document.getElementById(`chartExplPct${side}`).getContext('2d');
+    if (charts[side].explPct) charts[side].explPct.destroy();
+
+    const colorTotal = 'rgba(150, 150, 150, 0.4)';
+    const colorStudent = side === 'A' ? 'rgba(54, 162, 235, 0.6)' : 'rgba(75, 192, 192, 0.6)';
+    const colorParent = side === 'A' ? 'rgba(255, 99, 132, 0.6)' : 'rgba(255, 159, 64, 0.6)';
+    const colorBoth = side === 'A' ? 'rgba(75, 192, 75, 0.6)' : 'rgba(153, 102, 255, 0.6)'; 
 
     charts[side].explPct = new Chart(ctx, {
         type: 'bar',
@@ -125,24 +136,33 @@ function drawExplPctChart(side, data, dateStr) {
                 { label: '全体 (%)', data: data.explanation_total_pct, backgroundColor: colorTotal },
                 { label: '新入生のみ (%)', data: data.explanation_student_pct, backgroundColor: colorStudent },
                 { label: '保護者のみ (%)', data: data.explanation_parent_pct, backgroundColor: colorParent },
-                { label: '両方 (%)', data: data.explanation_both_pct, backgroundColor: colorBoth } // ★追加
+                { label: '両方 (%)', data: data.explanation_both_pct, backgroundColor: colorBoth }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            layout: { padding: { top: 30 } },
+            // 上部のパディングを少し増やして余裕を持たせる（30 → 40）
+            layout: { padding: { top: 40 } }, 
             scales: {
                 x: {
                     ticks: { autoSkip: false, maxRotation: 45, minRotation: 45, font: { size: 11 } }
                 },
-                y: { beginAtZero: true }
+                y: { 
+                    beginAtZero: true,
+                    // Y軸の最大値を115くらいに設定して、100%の棒の上に隙間を作る
+                    max: 115 
+                }
             },
             plugins: {
-                legend: { position: 'top' },
+                legend: { 
+                    position: 'top',
+                    // 凡例（全体、新入生などの四角）の下に余白を作る
+                    labels: { padding: 20 } 
+                },
                 title: { display: true, text: `${dateStr} - よかった説明 (割合)` },
                 datalabels: {
-                    color: '#444', anchor: 'end', align: 'top', font: { size: 10 },
+                    color: '#444', anchor: 'end', align: 'top', font: { size: 8 },
                     formatter: value => value > 0 ? value + '%' : ''
                 }
             }
