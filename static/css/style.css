@@ -1,35 +1,40 @@
-body { 
-    font-family: sans-serif; 
-    margin: 20px; 
-    background-color: #f4f7fa; 
-    color: #333;
-}
+body { font-family: sans-serif; margin: 20px; background-color: #f4f7fa; color: #333; }
 h2 { text-align: center; color: #2c3e50; }
 
-/* 上部の日付選択エリア */
-.header-selectors {
+/* ★ 画面全体を左右に分割するラッパー */
+.dashboard-wrapper {
     display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin-bottom: 20px;
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    gap: 20px;
+    align-items: stretch; /* 左右の高さを揃える */
 }
-.selector-box { font-size: 1.1em; font-weight: bold; }
-select { padding: 5px 10px; font-size: 1em; margin-left: 10px; }
+
+/* ★ 左右それぞれのパネル */
+.panel {
+    flex: 1;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+/* 日付選択エリア */
+.selector-box { text-align: center; margin-bottom: 20px; font-weight: bold; }
+select { padding: 5px; font-size: 1em; width: 80%; margin-top: 5px; }
+.hint-text { font-size: 0.8em; color: #666; margin-top: 5px; font-weight: normal; }
 
 /* タブのデザイン */
 .tabs {
     display: flex;
     justify-content: center;
+    flex-wrap: wrap; /* 画面が狭い時に折り返す */
+    gap: 5px;
     margin-bottom: 20px;
-    gap: 10px;
 }
 .tab-btn {
-    padding: 10px 20px;
-    font-size: 1em;
+    padding: 8px 12px;
+    font-size: 0.9em;
     font-weight: bold;
     border: none;
     background-color: #e0e6ed;
@@ -39,15 +44,21 @@ select { padding: 5px 10px; font-size: 1em; margin-left: 10px; }
     transition: 0.3s;
 }
 .tab-btn:hover { background-color: #cbd4df; }
-.tab-btn.active {
-    background-color: #3498db;
-    color: white;
-    box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
-}
+.tab-btn.active { background-color: #3498db; color: white; box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3); }
 
-/* タブコンテンツ（初期状態では非表示） */
-.tab-content { display: none; }
-.tab-content.active { display: block; animation: fadeIn 0.4s; }
+/* コンテンツエリア */
+.content-area {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 500px;
+}
+.tab-content { display: none; flex-grow: 1; position: relative; }
+.tab-content.active { display: flex; flex-direction: column; animation: fadeIn 0.4s; }
+
+/* グラフと区切り線 */
+canvas { max-width: 100%; flex-grow: 1; }
+.divider { margin: 20px 0; border: none; border-top: 1px dashed #ccc; width: 100%; }
 
 /* 基本データ用テキスト */
 .stat-box p { margin: 10px 0; font-size: 1.1em; }
@@ -58,29 +69,18 @@ select { padding: 5px 10px; font-size: 1em; margin-left: 10px; }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* 比較用コンテナ */
-.compare-container { 
-    display: flex; 
-    gap: 20px; 
-    align-items: stretch; /* 左右の高さを揃える */
+/* PDF出力ボタンのデザイン */
+.pdf-btn {
+    padding: 8px 12px;
+    font-size: 0.9em;
+    font-weight: bold;
+    border: none;
+    background-color: #2ecc71; /* 目立つ緑色 */
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-left: auto; /* タブ群の右端に寄せる */
 }
-
-.side {
-    flex: 1;
-    padding: 20px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    
-    /* グラフが潰れないように高さをしっかり確保 */
-    min-height: 500px; 
-    display: flex;
-    flex-direction: column;
-}
-
-canvas { 
-    /* 枠いっぱいに広がるように設定 */
-    max-width: 100%; 
-    flex-grow: 1; 
-    margin-top: 20px;
-}
+.pdf-btn:hover { background-color: #27ae60; }
+.pdf-btn:disabled { background-color: #95a5a6; cursor: not-allowed; }

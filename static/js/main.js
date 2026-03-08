@@ -1,5 +1,6 @@
 // データラベルの有効化
 Chart.register(ChartDataLabels);
+Chart.defaults.animation = false;
 
 // グラフのインスタンスを保存する変数
 let charts = {
@@ -8,11 +9,16 @@ let charts = {
 };
 
 // --- タブ切り替え機能 ---
-function switchTab(tabId, btnElement) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
+function switchTab(btnElement, targetId) {
+    // 1. クリックされたボタンが所属している親パネル（AまたはB）を探す
+    const panel = btnElement.closest('.panel');
     
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    // 2. そのパネルの中にあるコンテンツとボタンのアクティブ状態をすべてリセット
+    panel.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    panel.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // 3. クリックされたボタンと、対象のコンテンツだけをアクティブにする
+    document.getElementById(targetId).classList.add('active');
     btnElement.classList.add('active');
 }
 
@@ -246,4 +252,74 @@ function drawTimeCharts(side, startCounts, durationCounts, dateStr) {
             }
         }
     });
+}
+
+// --- PDF出力機能 (全データ出力版) ---
+async function downloadPDF(side, btnElement) {
+    const { jsPDF } = window.jspdf;
+    const panelElement = btnElement.closest('.panel');
+
+    // 処理中はボタンの文字を変えて連打を防止
+    const originalText = btnElement.innerHTML;
+    btnElement.innerHTML = "⏳ 全データ出力中...";
+    btnElement.disabled = true;
+
+    try {
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const margin = 10;
+        const printWidth = pdfWidth - (margin * 2);
+
+        const activeBtn = panelElement.querySelector('.tab-btn.active');
+        const activeContent = panelElement.querySelector('.tab-content.active');
+
+        const tabBtns = Array.from(panelElement.querySelectorAll('.tab-btn'));
+        const tabContents = Array.from(panelElement.querySelectorAll('.tab-content'));
+
+        // ★追加：撮影中だけ、CSSの「フワッと表示」アニメーションを無効化する！
+        tabContents.forEach(content => content.style.animation = 'none');
+
+        for (let i = 0; i < tabContents.length; i++) {
+            
+            tabBtns.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            tabBtns[i].classList.add('active');
+            tabContents[i].classList.add('active');
+
+            // グラフの描画が完了するまで一瞬待つ
+            await new Promise(resolve => setTimeout(resolve, 150));
+
+            const canvas = await html2canvas(panelElement, { 
+                scale: 2, 
+                backgroundColor: "#ffffff" 
+            });
+            const imgData = canvas.toDataURL('image/png');
+            const printHeight = (canvas.height * printWidth) / canvas.width;
+
+            if (i > 0) {
+                pdf.addPage();
+            }
+            
+            pdf.addImage(imgData, 'PNG', margin, margin, printWidth, printHeight);
+        }
+
+        // ★追加：すべての撮影が終わったら、アニメーションの設定を元に戻す
+        tabContents.forEach(content => content.style.animation = '');
+
+        tabBtns.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        if (activeBtn) activeBtn.classList.add('active');
+        if (activeContent) activeContent.classList.add('active');
+
+        const dateText = panelElement.querySelector('select').value || '未選択';
+        pdf.save(`入説レポート_パネル${side}_${dateText.replace(/ /g, '')}.pdf`);
+
+    } catch (error) {
+        console.error("PDF生成エラー:", error);
+        alert("PDFの出力に失敗しました。");
+    } finally {
+        btnElement.innerHTML = originalText;
+        btnElement.disabled = false;
+    }
 }
