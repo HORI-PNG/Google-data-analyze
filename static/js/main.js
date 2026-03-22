@@ -421,3 +421,51 @@ async function downloadExcel(side, btnElement) {
         btnElement.disabled = false;
     }
 }
+
+// --- (ファイルの末尾に追加) ---
+
+// --- 個別グラフ画像保存機能 ---
+function saveChartImage(canvasId, chartTypeName) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        alert("グラフが見つかりません。");
+        return;
+    }
+
+    // Chart.jsの背景はデフォルトで透明なので、白背景で塗りつぶした一時的なCanvasを作成
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const ctx = tempCanvas.getContext('2d');
+    
+    // 背景を白にする
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    // 元のグラフを描画
+    ctx.drawImage(canvas, 0, 0);
+
+    const imageDataUrl = tempCanvas.toDataURL('image/png');
+
+    // パネルと日付を取得してファイル名を生成
+    const panelSide = canvasId.endsWith('A') ? 'A' : 'B';
+    const panelElement = canvas.closest('.panel');
+    const selectElement = panelElement.querySelector('select');
+    
+    // 選択がない場合は未選択とする
+    let dateText = "未選択";
+    if (selectElement.selectedOptions.length > 0) {
+        dateText = Array.from(selectElement.selectedOptions)
+                        .map(opt => opt.value.replace(/ /g, ''))
+                        .join('_');
+    }
+
+    const fileName = `グラフ_${panelSide}_${chartTypeName}_${dateText}.png`;
+
+    // ダウンロード処理
+    const link = document.createElement('a');
+    link.href = imageDataUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}

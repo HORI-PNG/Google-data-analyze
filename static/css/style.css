@@ -195,3 +195,34 @@ canvas {
 .pdf-btn {
     margin-left: 0;
 }
+
+/* --- (ファイルの末尾に追加) --- */
+
+/* グラフ個別保存ボタンのコンテナとデザイン */
+.save-btn-container {
+    text-align: right;
+    margin-bottom: -10px;
+    /* グラフとの隙間を詰める */
+    position: relative;
+    z-index: 10;
+}
+
+.chart-save-btn {
+    background: none;
+    border: 1px solid #ccc;
+    color: #555;
+    background-color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 0.8em;
+    opacity: 0.7;
+    transition: 0.3s;
+}
+
+.chart-save-btn:hover {
+    opacity: 1;
+    background-color: #f0f0f0;
+    color: #2c3e50;
+    border-color: #999;
+}

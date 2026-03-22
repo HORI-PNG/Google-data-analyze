@@ -41,12 +41,23 @@
                 <div id="content-A-basic" class="tab-content active">
                     <div id="basicA">データAを選択してください</div>
                 </div>
-                <div id="content-A-expl" class="tab-content"><canvas id="chartExplA"></canvas></div>
-                <div id="content-A-explPct" class="tab-content"><canvas id="chartExplPctA"></canvas></div>
-                <div id="content-A-cat" class="tab-content"><canvas id="chartCatA"></canvas></div>
+                <div id="content-A-expl" class="tab-content">
+                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartExplA', 'よかった説明_人数')">💾 画像として保存</button></div>
+                    <canvas id="chartExplA"></canvas>
+                </div>
+                <div id="content-A-explPct" class="tab-content">
+                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartExplPctA', 'よかった説明_割合')">💾 画像として保存</button></div>
+                    <canvas id="chartExplPctA"></canvas>
+                </div>
+                <div id="content-A-cat" class="tab-content">
+                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartCatA', '受験区分')">💾 画像として保存</button></div>
+                    <canvas id="chartCatA"></canvas>
+                </div>
                 <div id="content-A-time" class="tab-content">
+                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartStartA', '開始時間の評価')">💾 画像として保存</button></div>
                     <canvas id="chartStartA"></canvas>
                     <hr class="divider">
+                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartDurationA', '説明時間の評価')">💾 画像として保存</button></div>
                     <canvas id="chartDurationA"></canvas>
                 </div>
             </div>
@@ -69,7 +80,7 @@
                 <button class="tab-btn" onclick="switchTab(this, 'content-B-explPct')">よかった説明(割合)</button>
                 <button class="tab-btn" onclick="switchTab(this, 'content-B-cat')">受験区分</button>
                 <button class="tab-btn" onclick="switchTab(this, 'content-B-time')">時間評価</button>
-                <button class="excel-btn" onclick="downloadExcel('A', this)">📊 Excel出力</button>
+                <button class="excel-btn" onclick="downloadExcel('B', this)">📊 Excel出力</button>
                 <button class="pdf-btn" onclick="downloadPDF('B', this)">📄 PDF出力</button>
             </div>
 
