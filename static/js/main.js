@@ -323,3 +323,101 @@ async function downloadPDF(side, btnElement) {
         btnElement.disabled = false;
     }
 }
+
+// --- (既存のコードの末尾に追加) ---
+
+// --- Excel出力機能 ---
+async function downloadExcel(side, btnElement) {
+    const panelElement = btnElement.closest('.panel');
+    const selectElement = panelElement.querySelector('select');
+    const selectedOptions = Array.from(selectElement.selectedOptions).map(opt => opt.value);
+
+    if (selectedOptions.length === 0) {
+        alert("データを出力するには、対象の日付を選択してください。");
+        return;
+    }
+
+    // 処理中はボタン状態を変更
+    const originalText = btnElement.innerHTML;
+    btnElement.innerHTML = "⏳ 出力中...";
+    btnElement.disabled = true;
+
+    try {
+        // APIから対象のデータを再取得
+        const datesQuery = selectedOptions.join(',');
+        const response = await fetch(`/api/data?dates=${datesQuery}`);
+        const data = await response.json();
+
+        // エクセルのワークブック（ファイル本体）を作成
+        const wb = XLSX.utils.book_new();
+
+        // --- シート1: 基本データ ---
+        const basicData = [
+            ["項目", "値"],
+            ["対象日付", selectedOptions.join(' & ')],
+            ["回答数", data.count],
+            ["満足度平均", data.satisfaction_mean]
+        ];
+        const wsBasic = XLSX.utils.aoa_to_sheet(basicData);
+        XLSX.utils.book_append_sheet(wb, wsBasic, "基本データ");
+
+        // --- シート2: よかった説明 ---
+        // ヘッダー行
+        const explRows = [
+            ["説明項目", "全体(人)", "新入生のみ(人)", "保護者のみ(人)", "両方(人)", "全体(%)", "新入生のみ(%)", "保護者のみ(%)", "両方(%)"]
+        ];
+        // データ行
+        for (let i = 0; i < data.explanation_labels.length; i++) {
+            explRows.push([
+                data.explanation_labels[i],
+                data.explanation_total[i],
+                data.explanation_student[i],
+                data.explanation_parent[i],
+                data.explanation_both[i],
+                data.explanation_total_pct[i],
+                data.explanation_student_pct[i],
+                data.explanation_parent_pct[i],
+                data.explanation_both_pct[i]
+            ]);
+        }
+        const wsExpl = XLSX.utils.aoa_to_sheet(explRows);
+        XLSX.utils.book_append_sheet(wb, wsExpl, "よかった説明");
+
+        // --- シート3: 属性・時間評価 ---
+        const otherRows = [];
+        
+        otherRows.push(["【受験区分】", "人数"]);
+        if (data.category_counts) {
+            Object.entries(data.category_counts).forEach(([k, v]) => otherRows.push([k, v]));
+        }
+        otherRows.push(["", ""]); // 空行
+        
+        otherRows.push(["【開始時間の評価】", "人数"]);
+        if (data.start_time_counts) {
+            Object.entries(data.start_time_counts).forEach(([k, v]) => otherRows.push([k, v]));
+        }
+        otherRows.push(["", ""]); // 空行
+        
+        otherRows.push(["【説明時間の評価】", "人数"]);
+        if (data.duration_counts) {
+            Object.entries(data.duration_counts).forEach(([k, v]) => otherRows.push([k, v]));
+        }
+        const wsOther = XLSX.utils.aoa_to_sheet(otherRows);
+        XLSX.utils.book_append_sheet(wb, wsOther, "属性・時間評価");
+
+        // --- ファイル出力 ---
+        const dateText = selectedOptions.join('_').replace(/ /g, '');
+        const fileName = `入説集計データ_パネル${side}_${dateText}.xlsx`;
+        
+        // Excelファイルとしてダウンロード
+        XLSX.writeFile(wb, fileName);
+
+    } catch (error) {
+        console.error("Excel生成エラー:", error);
+        alert("Excelの出力に失敗しました。");
+    } finally {
+        // ボタン状態を元に戻す
+        btnElement.innerHTML = originalText;
+        btnElement.disabled = false;
+    }
+}

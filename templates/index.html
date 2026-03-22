@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -32,6 +33,7 @@
                 <button class="tab-btn" onclick="switchTab(this, 'content-A-explPct')">よかった説明(割合)</button>
                 <button class="tab-btn" onclick="switchTab(this, 'content-A-cat')">受験区分</button>
                 <button class="tab-btn" onclick="switchTab(this, 'content-A-time')">時間評価</button>
+                <button class="excel-btn" onclick="downloadExcel('A', this)">📊 Excel出力</button>
                 <button class="pdf-btn" onclick="downloadPDF('A', this)">📄 PDF出力</button>
             </div>
 
@@ -67,6 +69,7 @@
                 <button class="tab-btn" onclick="switchTab(this, 'content-B-explPct')">よかった説明(割合)</button>
                 <button class="tab-btn" onclick="switchTab(this, 'content-B-cat')">受験区分</button>
                 <button class="tab-btn" onclick="switchTab(this, 'content-B-time')">時間評価</button>
+                <button class="excel-btn" onclick="downloadExcel('A', this)">📊 Excel出力</button>
                 <button class="pdf-btn" onclick="downloadPDF('B', this)">📄 PDF出力</button>
             </div>
 
