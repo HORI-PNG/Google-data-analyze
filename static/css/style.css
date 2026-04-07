@@ -102,10 +102,17 @@ select {
     animation: fadeIn 0.4s;
 }
 
+.chart-container {
+    position: relative;
+    flex-grow: 1;
+    min-height: 0;
+    /* ★これが無限に伸びるのを防ぐ一番重要な設定です */
+    width: 100%;
+}
+
 /* グラフと区切り線 */
 canvas {
     max-width: 100%;
-    flex-grow: 1;
 }
 
 .divider {

@@ -15,17 +15,22 @@ df2['形式'] = 'オンライン'
 # ★追加：列名を「参加者区分」に統一
 df2 = df2.rename(columns={'本日ご参加された方を教えてください。': '参加者区分'})
 
+# df1とdf2を結合（行方向に連結）し、インデックスをリセット
 df = pd.concat([df1, df2], ignore_index=True)
 
 # --- 2. 日付データの作成 ---
 # 「タイムスタンプ」から日付を抽出
-df['日付'] = pd.to_datetime(df['タイムスタンプ']).dt.date.astype(str)
+# dt.to_datetime()で文字列を日付型に変換し、dt.dateで日付部分だけを取り出し、astype(str)で文字列に変換
 df = df.dropna(subset=['タイムスタンプ'])
+df['日付'] = pd.to_datetime(df['タイムスタンプ']).dt.date.astype(str)
+
 
 # プルダウンで選ぶときに「対面かオンラインか」が分かるように、日付の前に形式をくっつける
 # 例：「2025-12-14」 → 「対面 : 2025-12-14」
 df['日付'] = df['形式'] + " : " + df['日付']
 
+# unique()で日付の重複を消す
+# tolist()でPythonのリストに変換
 @app.route('/')
 def index():
     dates = sorted(df['日付'].unique().tolist())
@@ -33,13 +38,20 @@ def index():
 
 # --- よかった説明を集計する補助関数 ---
 def count_explanations(df_subset):
+    # .fillna('')でNaNを空文字に置き換える
     good_explanations = df_subset['よかった、ためになった説明を教えてください'].fillna('')
     all_explanations = []
     for items in good_explanations:
         if items:
+            # 最終的に、全回答者の「よかった説明」が、1つの巨大なリスト（例：["A", "B", "C", "A", "B", ...]）に集約されるイメージ
             all_explanations.extend([i.strip() for i in items.split(',')])
+    # pandasのSeries(計算しやすい列の形)に変換してvalue_counts()を使うと、各説明のカウントが簡単に集計できる
+    # 最終的に、{"A": 10, "B": 5, "C": 3}のような辞書が返されるイメージ
+    # to_dict()で辞書に変換してJavaScriptが読める形式で返す
     return pd.Series(all_explanations).value_counts().to_dict()
 
+# datesには、「対面 : 2025-12-14」のような形式の日付が複数入っているイメージ
+# argsが「URLについている dates という名前のデータを取り出して！」とFlaskに命令しているイメージ
 @app.route('/api/data')
 def get_data():
     dates_str = request.args.get('dates')
@@ -68,6 +80,7 @@ def get_data():
     category_counts = target_df['受験区分を教えてください'].value_counts().to_dict()
 
     # ★変更：参加者区分で3つに分ける（「両方」を含まないように条件を設定）
+    # ~で、両方を含まない条件を追加している点に注意
     student_df = target_df[target_df['参加者区分'].str.contains('新入生', na=False) & ~target_df['参加者区分'].str.contains('両方', na=False)]
     parent_df = target_df[target_df['参加者区分'].str.contains('保護者', na=False) & ~target_df['参加者区分'].str.contains('両方', na=False)]
     both_df = target_df[target_df['参加者区分'].str.contains('両方', na=False)]

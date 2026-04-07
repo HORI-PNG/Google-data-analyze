@@ -41,24 +41,25 @@
                 <div id="content-A-basic" class="tab-content active">
                     <div id="basicA">データAを選択してください</div>
                 </div>
+                
                 <div id="content-A-expl" class="tab-content">
                     <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartExplA', 'よかった説明_人数')">💾 画像として保存</button></div>
-                    <canvas id="chartExplA"></canvas>
+                    <div class="chart-container"><canvas id="chartExplA"></canvas></div>
                 </div>
                 <div id="content-A-explPct" class="tab-content">
                     <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartExplPctA', 'よかった説明_割合')">💾 画像として保存</button></div>
-                    <canvas id="chartExplPctA"></canvas>
+                    <div class="chart-container"><canvas id="chartExplPctA"></canvas></div>
                 </div>
                 <div id="content-A-cat" class="tab-content">
                     <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartCatA', '受験区分')">💾 画像として保存</button></div>
-                    <canvas id="chartCatA"></canvas>
+                    <div class="chart-container"><canvas id="chartCatA"></canvas></div>
                 </div>
                 <div id="content-A-time" class="tab-content">
                     <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartStartA', '開始時間の評価')">💾 画像として保存</button></div>
-                    <canvas id="chartStartA"></canvas>
+                    <div class="chart-container"><canvas id="chartStartA"></canvas></div>
                     <hr class="divider">
                     <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartDurationA', '説明時間の評価')">💾 画像として保存</button></div>
-                    <canvas id="chartDurationA"></canvas>
+                    <div class="chart-container"><canvas id="chartDurationA"></canvas></div>
                 </div>
             </div>
         </div>
@@ -88,13 +89,25 @@
                 <div id="content-B-basic" class="tab-content active">
                     <div id="basicB">データBを選択してください</div>
                 </div>
-                <div id="content-B-expl" class="tab-content"><canvas id="chartExplB"></canvas></div>
-                <div id="content-B-explPct" class="tab-content"><canvas id="chartExplPctB"></canvas></div>
-                <div id="content-B-cat" class="tab-content"><canvas id="chartCatB"></canvas></div>
+
+                <div id="content-B-expl" class="tab-content">
+                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartExplB', 'よかった説明_人数')">💾 画像として保存</button></div>
+                    <div class="chart-container"><canvas id="chartExplB"></canvas></div>
+                </div>
+                <div id="content-B-explPct" class="tab-content">
+                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartExplPctB', 'よかった説明_割合')">💾 画像として保存</button></div>
+                    <div class="chart-container"><canvas id="chartExplPctB"></canvas></div>
+                </div>
+                <div id="content-B-cat" class="tab-content">
+                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartCatB', '受験区分')">💾 画像として保存</button></div>
+                    <div class="chart-container"><canvas id="chartCatB"></canvas></div>
+                </div>
                 <div id="content-B-time" class="tab-content">
-                    <canvas id="chartStartB"></canvas>
+                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartStartB', '開始時間の評価')">💾 画像として保存</button></div>
+                    <div class="chart-container"><canvas id="chartStartB"></canvas></div>
                     <hr class="divider">
-                    <canvas id="chartDurationB"></canvas>
+                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartDurationB', '説明時間の評価')">💾 画像として保存</button></div>
+                    <div class="chart-container"><canvas id="chartDurationB"></canvas></div>
                 </div>
             </div>
         </div>

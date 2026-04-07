@@ -23,6 +23,7 @@ function switchTab(btnElement, targetId) {
 }
 
 // オブジェクトを文字列に変換する補助関数
+// map()で、{A: 10, B: 5}のようなオブジェクトを["A(10人)", "B(5人)"]のような配列に変換し、join(' / ')で「A(10人) / B(5人)」のような文字列にまとめるイメージ
 function formatCounts(countsObj) {
     return Object.entries(countsObj).map(([key, val]) => `${key}(${val}人)`).join(' / ');
 }
@@ -32,6 +33,8 @@ async function updateData(side, selectElement) {
     // 選択されたすべてのオプション（日付）を配列として取得
     const selectedOptions = Array.from(selectElement.selectedOptions).map(opt => opt.value);
 
+    // もし選択がない場合は、基本データタブに「データを選択してください」と表示して、グラフはすべて消す
+    // charts[side].explなどにグラフのインスタンスが入っているので、destroy()でグラフを消すイメージ
     if (selectedOptions.length === 0) {
         document.getElementById(`basic${side}`).innerHTML = "データを選択してください";
         if (charts[side].expl) charts[side].expl.destroy();
@@ -45,6 +48,7 @@ async function updateData(side, selectElement) {
     const datesQuery = selectedOptions.join(',');
     const dateStr = selectedOptions.join(' & ');
 
+    // APIにリクエストを送って、選択された日付のデータを取得
     const response = await fetch(`/api/data?dates=${datesQuery}`);
     const data = await response.json();
 
