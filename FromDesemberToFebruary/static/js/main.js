@@ -27,11 +27,10 @@ function formatCounts(countsObj) {
 }
 
 // --- データ取得と画面更新 ---
+// --- データ取得と画面更新 ---
 async function updateData(side, selectElement) {
-    // 選択されたすべての日付を取得
     const selectedOptions = Array.from(selectElement.selectedOptions).map(opt => opt.value);
 
-    // 選択がない場合はグラフを破棄して終了
     if (selectedOptions.length === 0) {
         document.getElementById(`basic${side}`).innerHTML = "データを選択してください";
         if (charts[side].expl) charts[side].expl.destroy();
@@ -45,28 +44,92 @@ async function updateData(side, selectElement) {
     const datesQuery = selectedOptions.join(',');
     const dateStr = selectedOptions.join(' & ');
 
-    // Flask APIにリクエストを送り、データを取得
     const response = await fetch(`/api/data?dates=${datesQuery}`);
     const data = await response.json();
 
-    // 1. 基本データタブの更新
+    // --- 基本データタブに表を表示 ---
+    const s = data.stats;
     document.getElementById(`basic${side}`).innerHTML = `
         <div class="stat-box">
             <h3>${dateStr} の結果</h3>
-            <p>回答数: <strong>${data.count}</strong> 人</p>
-            <p>満足度平均: <strong>${data.satisfaction_mean}</strong></p>
-            <p>開始時間の評価: ${formatCounts(data.start_time_counts)}</p>
-            <p>説明時間の評価: ${formatCounts(data.duration_counts)}</p>
+            
+            <table class="basic-data-table">
+                <thead>
+                    <tr>
+                        <th>区分</th>
+                        <th>居住予定</th>
+                        <th>回答数</th>
+                        <th>満足度平均</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="tr-total">
+                        <td colspan="2"><strong>全体合計</strong></td>
+                        <td><strong>${data.count} 人</strong></td>
+                        <td><strong>${data.satisfaction_mean}</strong></td>
+                    </tr>
+                    <tr>
+                        <td rowspan="3">新入生</td>
+                        <td>一人暮らし</td>
+                        <td>${s.s_a.c} 人</td>
+                        <td>${s.s_a.m}</td>
+                    </tr>
+                    <tr>
+                        <td>実家通学</td>
+                        <td>${s.s_h.c} 人</td>
+                        <td>${s.s_h.m}</td>
+                    </tr>
+                    <tr>
+                        <td>迷っている</td>
+                        <td>${s.s_u.c} 人</td>
+                        <td>${s.s_u.m}</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="3">保護者</td>
+                        <td>一人暮らし</td>
+                        <td>${s.p_a.c} 人</td>
+                        <td>${s.p_a.m}</td>
+                    </tr>
+                    <tr>
+                        <td>実家通学</td>
+                        <td>${s.p_h.c} 人</td>
+                        <td>${s.p_h.m}</td>
+                    </tr>
+                    <tr>
+                        <td>迷っている</td>
+                        <td>${s.p_u.c} 人</td>
+                        <td>${s.p_u.m}</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="3">両方</td>
+                        <td>一人暮らし</td>
+                        <td>${s.b_a.c} 人</td>
+                        <td>${s.b_a.m}</td>
+                    </tr>
+                    <tr>
+                        <td>実家通学</td>
+                        <td>${s.b_h.c} 人</td>
+                        <td>${s.b_h.m}</td>
+                    </tr>
+                    <tr>
+                        <td>迷っている</td>
+                        <td>${s.b_u.c} 人</td>
+                        <td>${s.b_u.m}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="margin-top: 15px;"><strong>開始時間の評価:</strong><br> ${formatCounts(data.start_time_counts)}</p>
+            <p><strong>説明時間の評価:</strong><br> ${formatCounts(data.duration_counts)}</p>
         </div>
     `;
 
-    // 2. グラフの描画関数を呼び出す
+    // 各グラフの描画
     drawExplChart(side, data, dateStr);
     drawExplPctChart(side, data, dateStr);
     if (data.category_counts) drawCategoryChart(side, data.category_counts, dateStr);
     if (data.start_time_counts && data.duration_counts) drawTimeCharts(side, data.start_time_counts, data.duration_counts, dateStr);
 }
-
 // --- グラフ描画関数（よかった説明 - 人数） ---
 function drawExplChart(side, data, dateStr) {
     const ctx = document.getElementById(`chartExpl${side}`).getContext('2d');
@@ -415,4 +478,23 @@ function saveChartImage(canvasId, chartTypeName) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+function selectSummary(side, type) {
+    const select = document.getElementById(`date${side}`);
+    const options = select.options;
+    
+    for (let i = 0; i < options.length; i++) {
+        if (type === '全日程') {
+            options[i].selected = true;
+        } else if (options[i].value.startsWith(type)) {
+            // "対面 : 2025..." または "オンライン : 2025..." で始まるものを選択
+            options[i].selected = true;
+        } else {
+            options[i].selected = false;
+        }
+    }
+    
+    // 選択状態を反映させてから、既存のupdateData関数を呼んで表示を更新
+    updateData(side, select);
 }
