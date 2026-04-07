@@ -1,4 +1,5 @@
-from flask import Flask, render_template, jsonify, request
+import io
+from flask import Flask, render_template, jsonify, request, make_response
 import pandas as pd
 import numpy as np
 
@@ -80,9 +81,10 @@ def get_data():
     if target_df.empty:
         return jsonify({"error": "Data not found"}), 404
 
-    # 基本データの集計
+    # --- A. 全体の基本統計 ---
     total_responses = len(target_df)
-    satisfaction_mean = target_df['本日の説明会の満足度を教えてください'].mean()
+    col_satisfaction = '本日の説明会の満足度を教えてください'
+    satisfaction_mean = target_df[col_satisfaction].mean()
     if np.isnan(satisfaction_mean):
         satisfaction_mean = 0
 
@@ -90,9 +92,10 @@ def get_data():
     duration_counts = target_df['説明時間はいかがでしたか。'].value_counts().to_dict()
     category_counts = target_df['受験区分を教えてください'].value_counts().to_dict()
 
-    # --- 参加者区分(3つ) × 居住予定(3つ) の 9通りに分割 ---
+    # --- B. 9パターン（区分 × 居住）のデータ分割 ---
     col_living = '一人暮らし予定か実家通学予定かお答えください'
 
+    # 条件定義
     cond_student = target_df['参加者区分'].str.contains('新入生', na=False) & ~target_df['参加者区分'].str.contains('両方', na=False)
     cond_parent = target_df['参加者区分'].str.contains('保護者', na=False) & ~target_df['参加者区分'].str.contains('両方', na=False)
     cond_both = target_df['参加者区分'].str.contains('両方', na=False)
@@ -101,31 +104,36 @@ def get_data():
     cond_home = target_df[col_living].str.contains('実家', na=False)
     cond_unsure = target_df[col_living].str.contains('迷っている', na=False)
 
-    student_alone_df = target_df[cond_student & cond_alone]
-    student_home_df  = target_df[cond_student & cond_home]
-    student_unsure_df = target_df[cond_student & cond_unsure]
+    # データフレーム分割
+    s_a_df = target_df[cond_student & cond_alone]
+    s_h_df = target_df[cond_student & cond_home]
+    s_u_df = target_df[cond_student & cond_unsure]
 
-    parent_alone_df = target_df[cond_parent & cond_alone]
-    parent_home_df  = target_df[cond_parent & cond_home]
-    parent_unsure_df = target_df[cond_parent & cond_unsure]
+    p_a_df = target_df[cond_parent & cond_alone]
+    p_h_df = target_df[cond_parent & cond_home]
+    p_u_df = target_df[cond_parent & cond_unsure]
 
-    both_alone_df = target_df[cond_both & cond_alone]
-    both_home_df  = target_df[cond_both & cond_home]
-    both_unsure_df = target_df[cond_both & cond_unsure]
+    b_a_df = target_df[cond_both & cond_alone]
+    b_h_df = target_df[cond_both & cond_home]
+    b_u_df = target_df[cond_both & cond_unsure]
 
-    # 集計実行
-    total_counts = count_explanations(target_df)
-    student_alone_counts = count_explanations(student_alone_df)
-    student_home_counts = count_explanations(student_home_df)
-    student_unsure_counts = count_explanations(student_unsure_df)
-    parent_alone_counts = count_explanations(parent_alone_df)
-    parent_home_counts = count_explanations(parent_home_df)
-    parent_unsure_counts = count_explanations(parent_unsure_df)
-    both_alone_counts = count_explanations(both_alone_df)
-    both_home_counts = count_explanations(both_home_df)
-    both_unsure_counts = count_explanations(both_unsure_df)
+    # --- C. 9パターンの回答数と満足度平均の計算 ---
+    def get_stat(df_sub):
+        c = len(df_sub)
+        m = df_sub[col_satisfaction].mean()
+        return c, (round(m, 2) if not np.isnan(m) else 0)
 
-    # ★変更: 3月用の19項目に書き換え
+    c_s_a, m_s_a = get_stat(s_a_df)
+    c_s_h, m_s_h = get_stat(s_h_df)
+    c_s_u, m_s_u = get_stat(s_u_df)
+    c_p_a, m_p_a = get_stat(p_a_df)
+    c_p_h, m_p_h = get_stat(p_h_df)
+    c_p_u, m_p_u = get_stat(p_u_df)
+    c_b_a, m_b_a = get_stat(b_a_df)
+    c_b_h, m_b_h = get_stat(b_h_df)
+    c_b_u, m_b_u = get_stat(b_u_df)
+
+    # --- D. よかった説明（19項目）の集計 ---
     labels = [
         "大学生協のご説明", "通学手段", "もしもへのそなえ(共済/保険など)", 
         "高校と大学の勉強の仕方の違い", "生協PC＋アフターケアについて", "iPadについて", 
@@ -134,66 +142,65 @@ def get_data():
         "開講までの準備（オリエンテーションなど）", "毎年の過ごし方", "九工大の4年間（TOEIC）", 
         "九工大の4年間（就活、院進）", "後悔の話", "今からできること（必須教科書・教材など）"
     ]
-    
-    # データを配列化
-    total_data = [total_counts.get(label, 0) for label in labels]
-    student_alone_data = [student_alone_counts.get(label, 0) for label in labels]
-    student_home_data = [student_home_counts.get(label, 0) for label in labels]
-    student_unsure_data = [student_unsure_counts.get(label, 0) for label in labels]
-    parent_alone_data = [parent_alone_counts.get(label, 0) for label in labels]
-    parent_home_data = [parent_home_counts.get(label, 0) for label in labels]
-    parent_unsure_data = [parent_unsure_counts.get(label, 0) for label in labels]
-    both_alone_data = [both_alone_counts.get(label, 0) for label in labels]
-    both_home_data = [both_home_counts.get(label, 0) for label in labels]
-    both_unsure_data = [both_unsure_counts.get(label, 0) for label in labels]
 
-    # 割合の算出
-    def calc_pct(data_list, df_subset):
-        total = len(df_subset)
-        return [round((v / total) * 100, 1) if total > 0 else 0 for v in data_list]
+    def get_counts_and_pct(df_sub):
+        counts_dict = count_explanations(df_sub)
+        data_list = [counts_dict.get(l, 0) for l in labels]
+        total = len(df_sub)
+        pct_list = [round((v / total) * 100, 1) if total > 0 else 0 for v in data_list]
+        return data_list, pct_list
 
-    total_pct = calc_pct(total_data, target_df)
-    student_alone_pct = calc_pct(student_alone_data, student_alone_df)
-    student_home_pct = calc_pct(student_home_data, student_home_df)
-    student_unsure_pct = calc_pct(student_unsure_data, student_unsure_df)
-    parent_alone_pct = calc_pct(parent_alone_data, parent_alone_df)
-    parent_home_pct = calc_pct(parent_home_data, parent_home_df)
-    parent_unsure_pct = calc_pct(parent_unsure_data, parent_unsure_df)
-    both_alone_pct = calc_pct(both_alone_data, both_alone_df)
-    both_home_pct = calc_pct(both_home_data, both_home_df)
-    both_unsure_pct = calc_pct(both_unsure_data, both_unsure_df)
+    total_d, total_p = get_counts_and_pct(target_df)
+    s_a_d, s_a_p = get_counts_and_pct(s_a_df)
+    s_h_d, s_h_p = get_counts_and_pct(s_h_df)
+    s_u_d, s_u_p = get_counts_and_pct(s_u_df)
+    p_a_d, p_a_p = get_counts_and_pct(p_a_df)
+    p_h_d, p_h_p = get_counts_and_pct(p_h_df)
+    p_u_d, p_u_p = get_counts_and_pct(p_u_df)
+    b_a_d, b_a_p = get_counts_and_pct(b_a_df)
+    b_h_d, b_h_p = get_counts_and_pct(b_h_df)
+    b_u_d, b_u_p = get_counts_and_pct(b_u_df)
 
+    # --- E. JSONレスポンス ---
     return jsonify({
         "count": total_responses,
         "satisfaction_mean": round(satisfaction_mean, 2),
         "start_time_counts": start_time_counts,
         "duration_counts": duration_counts,
         "category_counts": category_counts,
-        
+
+        # 9パターンの基本データ
+        "stats": {
+            "s_a": {"c": c_s_a, "m": m_s_a}, "s_h": {"c": c_s_h, "m": m_s_h}, "s_u": {"c": c_s_u, "m": m_s_u},
+            "p_a": {"c": c_p_a, "m": m_p_a}, "p_h": {"c": c_p_h, "m": m_p_h}, "p_u": {"c": c_p_u, "m": m_p_u},
+            "b_a": {"c": c_b_a, "m": m_b_a}, "b_h": {"c": c_b_h, "m": m_b_h}, "b_u": {"c": c_b_u, "m": m_b_u}
+        },
+
+        # よかった説明のデータ
         "explanation_labels": labels,
-        "explanation_total": total_data,
-        
-        "explanation_student_alone": student_alone_data,
-        "explanation_student_home": student_home_data,
-        "explanation_student_unsure": student_unsure_data,
-        "explanation_parent_alone": parent_alone_data,
-        "explanation_parent_home": parent_home_data,
-        "explanation_parent_unsure": parent_unsure_data,
-        "explanation_both_alone": both_alone_data,
-        "explanation_both_home": both_home_data,
-        "explanation_both_unsure": both_unsure_data,
-        
-        "explanation_total_pct": total_pct,
-        "explanation_student_alone_pct": student_alone_pct,
-        "explanation_student_home_pct": student_home_pct,
-        "explanation_student_unsure_pct": student_unsure_pct,
-        "explanation_parent_alone_pct": parent_alone_pct,
-        "explanation_parent_home_pct": parent_home_pct,
-        "explanation_parent_unsure_pct": parent_unsure_pct,
-        "explanation_both_alone_pct": both_alone_pct,
-        "explanation_both_home_pct": both_home_pct,
-        "explanation_both_unsure_pct": both_unsure_pct
+        "explanation_total": total_d, "explanation_total_pct": total_p,
+        "explanation_student_alone": s_a_d, "explanation_student_alone_pct": s_a_p,
+        "explanation_student_home": s_h_d, "explanation_student_home_pct": s_h_p,
+        "explanation_student_unsure": s_u_d, "explanation_student_unsure_pct": s_u_p,
+        "explanation_parent_alone": p_a_d, "explanation_parent_alone_pct": p_a_p,
+        "explanation_parent_home": p_h_d, "explanation_parent_home_pct": p_h_p,
+        "explanation_parent_unsure": p_u_d, "explanation_parent_unsure_pct": p_u_p,
+        "explanation_both_alone": b_a_d, "explanation_both_alone_pct": b_a_p,
+        "explanation_both_home": b_h_d, "explanation_both_home_pct": b_h_p,
+        "explanation_both_unsure": b_u_d, "explanation_both_unsure_pct": b_u_p
     })
+
+@app.route('/api/download_all_csv')
+def download_all_csv():
+    # メモリ上にCSVを作成
+    si = io.StringIO()
+    # 結合済みの全データ(df)をCSV形式で書き出し（Excelで見れるようutf-8-sigを指定）
+    df.to_csv(si, index=False, encoding='utf-8-sig')
+    
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = "attachment; filename=all_survey_data.csv"
+    output.headers["Content-type"] = "text/csv"
+    return output
 
 if __name__ == '__main__':
     app.run(debug=True)

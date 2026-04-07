@@ -1,234 +1,289 @@
+@charset "UTF-8";
+
+/* =========================================
+   ベース設定
+   ========================================= */
 body {
-    font-family: sans-serif;
-    margin: 20px;
-    background-color: #f4f7fa;
+    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+    background-color: #f4f7f6;
     color: #333;
+    margin: 0;
+    padding: 20px;
 }
 
 h2 {
     text-align: center;
     color: #2c3e50;
+    margin-bottom: 30px;
 }
 
-/* ★ 画面全体を左右に分割するラッパー */
+/* =========================================
+   ダッシュボードレイアウト (左右パネル)
+   ========================================= */
 .dashboard-wrapper {
     display: flex;
+    flex-wrap: wrap;
     gap: 20px;
-    align-items: stretch;
-    /* 左右の高さを揃える */
+    justify-content: space-between;
 }
 
-/* ★ 左右それぞれのパネル */
 .panel {
     flex: 1;
-    background: white;
-    padding: 20px;
+    min-width: 45%;
+    background-color: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-/* 日付選択エリア */
+/* =========================================
+   日付選択エリア
+   ========================================= */
 .selector-box {
-    text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+}
+
+.selector-box label {
     font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
 }
 
 select {
+    width: 100%;
     padding: 5px;
-    font-size: 1em;
-    width: 80%;
-    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
 }
 
 .hint-text {
-    font-size: 0.8em;
+    font-size: 12px;
     color: #666;
     margin-top: 5px;
-    font-weight: normal;
 }
 
-/* タブのデザイン */
+/* =========================================
+   タブとボタンのレイアウト
+   ========================================= */
 .tabs {
     display: flex;
-    justify-content: center;
     flex-wrap: wrap;
-    /* 画面が狭い時に折り返す */
     gap: 5px;
     margin-bottom: 20px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
 }
 
 .tab-btn {
     padding: 8px 12px;
-    font-size: 0.9em;
-    font-weight: bold;
+    background-color: #e9ecef;
     border: none;
-    background-color: #e0e6ed;
-    color: #555;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: 0.3s;
+    font-size: 13px;
+    transition: background-color 0.2s;
 }
 
 .tab-btn:hover {
-    background-color: #cbd4df;
+    background-color: #d3d9df;
 }
 
 .tab-btn.active {
-    background-color: #3498db;
+    background-color: #007bff;
     color: white;
-    box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+    font-weight: bold;
 }
 
-/* コンテンツエリア */
-.content-area {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 500px;
+/* 各種出力ボタン（Excel / PDF） */
+.excel-btn,
+.pdf-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
 }
 
+.excel-btn {
+    background-color: #28a745;
+    color: white;
+    margin-left: auto;
+}
+
+.excel-btn:hover {
+    background-color: #218838;
+}
+
+.pdf-btn {
+    background-color: #dc3545;
+    color: white;
+    margin-left: 5px;
+}
+
+.pdf-btn:hover {
+    background-color: #c82333;
+}
+
+/* グラフ画像の保存ボタン */
+.save-btn-container {
+    text-align: right;
+    margin-bottom: 10px;
+}
+
+.chart-save-btn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.chart-save-btn:hover {
+    background-color: #5a6268;
+}
+
+/* =========================================
+   コンテンツエリア (グラフ・表)
+   ========================================= */
 .tab-content {
     display: none;
-    flex-grow: 1;
-    position: relative;
+    animation: fadeIn 0.3s;
 }
 
 .tab-content.active {
-    display: flex;
-    flex-direction: column;
-    animation: fadeIn 0.4s;
-}
-
-/* 例: グラフの表示領域を広げる */
-.chart-container {
-    height: 600px;
-    /* ここを大きくする（元の数値より200pxほどプラス） */
-    width: 100%;
-}
-
-/* グラフと区切り線 */
-canvas {
-    max-width: 100%;
-}
-
-.divider {
-    margin: 20px 0;
-    border: none;
-    border-top: 1px dashed #ccc;
-    width: 100%;
-}
-
-/* 基本データ用テキスト */
-.stat-box p {
-    margin: 10px 0;
-    font-size: 1.1em;
-}
-
-.stat-box strong {
-    color: #e74c3c;
-    font-size: 1.2em;
+    display: block;
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0);
     }
 }
 
-/* PDF出力ボタンのデザイン */
-.pdf-btn {
-    padding: 8px 12px;
-    font-size: 0.9em;
-    font-weight: bold;
-    border: none;
-    background-color: #2ecc71;
-    /* 目立つ緑色 */
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.3s;
-    margin-left: auto;
-    /* タブ群の右端に寄せる */
+.stat-box {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
 }
 
-.pdf-btn:hover {
-    background-color: #27ae60;
+.stat-box h3 {
+    margin-top: 0;
+    color: #495057;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 5px;
+    display: inline-block;
 }
 
-.pdf-btn:disabled {
-    background-color: #95a5a6;
-    cursor: not-allowed;
-}
-
-/* --- (既存の .pdf-btn などの下に追加) --- */
-
-/* Excel出力ボタンのデザイン */
-.excel-btn {
-    padding: 8px 12px;
-    font-size: 0.9em;
-    font-weight: bold;
-    border: none;
-    background-color: #2980b9;
-    /* エクセルっぽさを出すための青（または緑 #27ae60） */
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.3s;
-    margin-left: auto;
-    /* 右寄せ */
-    margin-right: 5px;
-}
-
-.excel-btn:hover {
-    background-color: #1f618d;
-}
-
-.excel-btn:disabled {
-    background-color: #95a5a6;
-    cursor: not-allowed;
-}
-
-/* 既存のPDFボタンの margin-left: auto; を外して、Excelボタンの右に並ぶように微調整します */
-.pdf-btn {
-    margin-left: 0;
-}
-
-/* --- (ファイルの末尾に追加) --- */
-
-/* グラフ個別保存ボタンのコンテナとデザイン */
-.save-btn-container {
-    text-align: right;
-    margin-bottom: -10px;
-    /* グラフとの隙間を詰める */
+/* 円グラフ等用の基本コンテナ */
+.chart-container {
     position: relative;
-    z-index: 10;
+    height: 400px;
+    width: 100%;
 }
 
-.chart-save-btn {
-    background: none;
+.divider {
+    margin: 30px 0;
+    border: 0;
+    border-top: 1px dashed #ccc;
+}
+
+/* =========================================
+   ★ 基本データ用のテーブルスタイル (細分化対応)
+   ========================================= */
+.basic-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 14px;
+    background-color: white;
+}
+
+.basic-data-table th,
+.basic-data-table td {
     border: 1px solid #ccc;
-    color: #555;
-    background-color: #fff;
-    border-radius: 4px;
-    cursor: pointer;
-    padding: 4px 8px;
-    font-size: 0.8em;
-    opacity: 0.7;
-    transition: 0.3s;
+    padding: 8px 10px;
+    text-align: center;
 }
 
-.chart-save-btn:hover {
-    opacity: 1;
+.basic-data-table th {
     background-color: #f0f0f0;
-    color: #2c3e50;
-    border-color: #999;
+    font-weight: bold;
+}
+
+.basic-data-table .tr-total td {
+    background-color: #ffe8b3;
+    /* 全体合計の行は少し色をつけて目立たせる */
+}
+
+.basic-data-table td[rowspan] {
+    background-color: #fdfdfd;
+    vertical-align: middle;
+    font-weight: bold;
+}
+
+/* =========================================
+   ★ March用：横スクロールとワイド棒グラフ設定
+   ========================================= */
+.chart-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    /* 横スクロールを有効にする */
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 10px;
+}
+
+.chart-bar-wide {
+    position: relative;
+    /* 19項目のグラフが潰れないように広げる幅（好みに応じて数値を変えてください） */
+    min-width: 3000px;
+    height: 600px;
+}
+
+/* --- 全日程CSV出力ボタン --- */
+.csv-all-btn {
+    background-color: #343a40;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.csv-all-btn:hover {
+    background-color: #23272b;
+}
+
+/* --- クイック集計ボタン群 --- */
+.quick-summary-btns {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 8px;
+}
+
+.smr-btn {
+    flex: 1;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 5px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.smr-btn:hover {
+    background-color: #495057;
 }

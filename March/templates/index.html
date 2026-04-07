@@ -14,11 +14,20 @@
 
     <h2>入学準備説明会 アンケート比較 (日付別)</h2>
 
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button class="csv-all-btn" onclick="location.href='/api/download_all_csv'">📁 全日程の生データ(CSV)を出力</button>
+    </div>
+
     <div class="dashboard-wrapper">
         
         <div class="panel">
             <div class="selector-box">
                 <label>比較データA (日付):</label>
+                <div class="quick-summary-btns">
+                    <button class="smr-btn" onclick="selectSummary('A', '対面')">対面 全集計</button>
+                    <button class="smr-btn" onclick="selectSummary('A', 'オンライン')">オンライン 全集計</button>
+                    <button class="smr-btn" onclick="selectSummary('A', '全日程')">全日程 全集計</button>
+                </div>
                 <select id="dateA" multiple size="4" onchange="updateData('A', this)">
                     {% for date in dates %}
                         <option value="{{ date }}">{{ date }}</option>
@@ -44,11 +53,22 @@
                 
                 <div id="content-A-expl" class="tab-content">
                     <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartExplA', 'よかった説明_人数')">💾 画像として保存</button></div>
-                    <div class="chart-container"><canvas id="chartExplA"></canvas></div>
+                    
+                    <div class="chart-scroll-wrapper">
+                        <div class="chart-container chart-bar-wide">
+                            <canvas id="chartExplA"></canvas>
+                        </div>
+                    </div>
                 </div>
+                
                 <div id="content-A-explPct" class="tab-content">
                     <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartExplPctA', 'よかった説明_割合')">💾 画像として保存</button></div>
-                    <div class="chart-container"><canvas id="chartExplPctA"></canvas></div>
+                    
+                    <div class="chart-scroll-wrapper">
+                        <div class="chart-container chart-bar-wide">
+                            <canvas id="chartExplPctA"></canvas>
+                        </div>
+                    </div>
                 </div>
                 <div id="content-A-cat" class="tab-content">
                     <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartCatA', '受験区分')">💾 画像として保存</button></div>
@@ -60,54 +80,6 @@
                     <hr class="divider">
                     <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartDurationA', '説明時間の評価')">💾 画像として保存</button></div>
                     <div class="chart-container"><canvas id="chartDurationA"></canvas></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="panel">
-            <div class="selector-box">
-                <label>比較データB (日付):</label>
-                <select id="dateB" multiple size="4" onchange="updateData('B', this)">
-                    {% for date in dates %}
-                        <option value="{{ date }}">{{ date }}</option>
-                    {% endfor %}
-                </select>
-                <div class="hint-text">※Ctrlキー (MacはCommand) で複数選択</div>
-            </div>
-
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab(this, 'content-B-basic')">基本データ</button>
-                <button class="tab-btn" onclick="switchTab(this, 'content-B-expl')">よかった説明(人数)</button>
-                <button class="tab-btn" onclick="switchTab(this, 'content-B-explPct')">よかった説明(割合)</button>
-                <button class="tab-btn" onclick="switchTab(this, 'content-B-cat')">受験区分</button>
-                <button class="tab-btn" onclick="switchTab(this, 'content-B-time')">時間評価</button>
-                <button class="excel-btn" onclick="downloadExcel('B', this)">📊 Excel出力</button>
-                <button class="pdf-btn" onclick="downloadPDF('B', this)">📄 PDF出力</button>
-            </div>
-
-            <div class="content-area">
-                <div id="content-B-basic" class="tab-content active">
-                    <div id="basicB">データBを選択してください</div>
-                </div>
-
-                <div id="content-B-expl" class="tab-content">
-                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartExplB', 'よかった説明_人数')">💾 画像として保存</button></div>
-                    <div class="chart-container"><canvas id="chartExplB"></canvas></div>
-                </div>
-                <div id="content-B-explPct" class="tab-content">
-                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartExplPctB', 'よかった説明_割合')">💾 画像として保存</button></div>
-                    <div class="chart-container"><canvas id="chartExplPctB"></canvas></div>
-                </div>
-                <div id="content-B-cat" class="tab-content">
-                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartCatB', '受験区分')">💾 画像として保存</button></div>
-                    <div class="chart-container"><canvas id="chartCatB"></canvas></div>
-                </div>
-                <div id="content-B-time" class="tab-content">
-                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartStartB', '開始時間の評価')">💾 画像として保存</button></div>
-                    <div class="chart-container"><canvas id="chartStartB"></canvas></div>
-                    <hr class="divider">
-                    <div class="save-btn-container"><button class="chart-save-btn" onclick="saveChartImage('chartDurationB', '説明時間の評価')">💾 画像として保存</button></div>
-                    <div class="chart-container"><canvas id="chartDurationB"></canvas></div>
                 </div>
             </div>
         </div>
