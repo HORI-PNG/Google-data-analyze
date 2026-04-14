@@ -192,14 +192,17 @@ def get_data():
 
 @app.route('/api/download_all_csv')
 def download_all_csv():
-    # メモリ上にCSVを作成
-    si = io.StringIO()
-    # 結合済みの全データ(df)をCSV形式で書き出し（Excelで見れるようutf-8-sigを指定）
-    df.to_csv(si, index=False, encoding='utf-8-sig')
+    # 1. データフレームをCSV形式の「文字列」としてメモリ上に取得
+    csv_str = df.to_csv(index=False)
     
-    output = make_response(si.getvalue())
+    # 2. Excelで文字化けしないように、文字列を「BOM付きUTF-8」のバイト列に変換
+    csv_bytes = csv_str.encode('utf-8-sig')
+    
+    # 3. レスポンスとしてブラウザに返す
+    output = make_response(csv_bytes)
     output.headers["Content-Disposition"] = "attachment; filename=all_survey_data.csv"
-    output.headers["Content-type"] = "text/csv"
+    output.headers["Content-type"] = "text/csv; charset=utf-8"
+    
     return output
 
 if __name__ == '__main__':

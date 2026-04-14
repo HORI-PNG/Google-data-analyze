@@ -470,3 +470,83 @@ function selectSummary(side, type) {
     // 選択状態を反映させてから、既存のupdateData関数を呼んで表示を更新
     updateData(side, select);
 }
+
+// --- ★追加: 全日程の集計データをCSVとして縦に並べて出力 ---
+async function downloadAllSummaryCSV(btnElement) {
+    const originalText = btnElement.innerHTML;
+    btnElement.innerHTML = "⏳ 全日程を集計中...";
+    btnElement.disabled = true;
+
+    try {
+        // 全ての日付リストを取得するため、パネルAのセレクトボックス内の全要素を取得
+        const selectElement = document.getElementById('dateA');
+        const allOptions = Array.from(selectElement.options).map(opt => opt.value);
+        const datesQuery = allOptions.join(',');
+
+        // APIを叩いて全日程の集計データを一括取得
+        const response = await fetch(`/api/data?dates=${datesQuery}`);
+        const data = await response.json();
+
+        // 文字化けを防ぐためのBOM（Byte Order Mark）を先頭につける
+        let csvContent = "\uFEFF"; 
+
+        // 【1. 基本データ】
+        csvContent += "【基本データ】\n";
+        csvContent += "項目,値\n";
+        csvContent += `対象日付,全日程(${allOptions.length}回分)\n`;
+        csvContent += `回答数合計,${data.count} 人\n`;
+        csvContent += `満足度平均,${data.satisfaction_mean}\n\n`;
+
+        // 【2. よかった説明】
+        csvContent += "【よかった説明】\n";
+        csvContent += "説明項目,全体(人),新入生一人(人),新入生実家(人),新入生迷(人),保護者一人(人),保護者実家(人),保護者迷(人),両方一人(人),両方実家(人),両方迷(人),全体(%),新入生一人(%),新入生実家(%),新入生迷(%),保護者一人(%),保護者実家(%),保護者迷(%),両方一人(%),両方実家(%),両方迷(%)\n";
+
+        for (let i = 0; i < data.explanation_labels.length; i++) {
+            let row = [
+                data.explanation_labels[i],
+                data.explanation_total[i],
+                data.explanation_student_alone[i], data.explanation_student_home[i], data.explanation_student_unsure[i],
+                data.explanation_parent_alone[i], data.explanation_parent_home[i], data.explanation_parent_unsure[i],
+                data.explanation_both_alone[i], data.explanation_both_home[i], data.explanation_both_unsure[i],
+                data.explanation_total_pct[i],
+                data.explanation_student_alone_pct[i], data.explanation_student_home_pct[i], data.explanation_student_unsure_pct[i],
+                data.explanation_parent_alone_pct[i], data.explanation_parent_home_pct[i], data.explanation_parent_unsure_pct[i],
+                data.explanation_both_alone_pct[i], data.explanation_both_home_pct[i], data.explanation_both_unsure_pct[i]
+            ];
+            csvContent += row.join(",") + "\n";
+        }
+        csvContent += "\n";
+
+        // 【3. 属性・時間評価】
+        csvContent += "【受験区分】\n";
+        csvContent += "項目,人数\n";
+        if (data.category_counts) Object.entries(data.category_counts).forEach(([k, v]) => csvContent += `${k},${v}\n`);
+        csvContent += "\n";
+
+        csvContent += "【開始時間の評価】\n";
+        csvContent += "項目,人数\n";
+        if (data.start_time_counts) Object.entries(data.start_time_counts).forEach(([k, v]) => csvContent += `${k},${v}\n`);
+        csvContent += "\n";
+
+        csvContent += "【説明時間の評価】\n";
+        csvContent += "項目,人数\n";
+        if (data.duration_counts) Object.entries(data.duration_counts).forEach(([k, v]) => csvContent += `${k},${v}\n`);
+
+        // 生成したCSV文字列をファイルとしてダウンロード
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "全日程_集計データ.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+    } catch (error) {
+        console.error("CSV生成エラー:", error);
+        alert("CSVの出力に失敗しました。");
+    } finally {
+        btnElement.innerHTML = originalText;
+        btnElement.disabled = false;
+    }
+}
